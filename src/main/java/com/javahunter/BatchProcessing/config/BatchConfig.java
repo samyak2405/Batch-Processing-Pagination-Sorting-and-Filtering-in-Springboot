@@ -5,21 +5,30 @@ import com.javahunter.BatchProcessing.repository.ProductRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
+import org.springframework.batch.core.configuration.annotation.StepScope;
 import org.springframework.batch.core.job.builder.JobBuilder;
+import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.core.repository.JobRepository;
 import org.springframework.batch.core.step.builder.StepBuilder;
+import org.springframework.batch.item.ItemProcessor;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.data.RepositoryItemWriter;
 import org.springframework.batch.item.file.FlatFileItemReader;
 import org.springframework.batch.item.file.LineMapper;
+import org.springframework.batch.item.file.builder.FlatFileItemReaderBuilder;
 import org.springframework.batch.item.file.mapping.BeanWrapperFieldSetMapper;
 import org.springframework.batch.item.file.mapping.DefaultLineMapper;
 import org.springframework.batch.item.file.transform.DelimitedLineTokenizer;
+import org.springframework.batch.item.support.CompositeItemProcessor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.task.SimpleAsyncTaskExecutor;
 import org.springframework.core.task.TaskExecutor;
 import org.springframework.transaction.PlatformTransactionManager;
+
+import java.util.List;
 
 @Configuration
 @RequiredArgsConstructor
@@ -93,4 +102,49 @@ public class BatchConfig {
         lineMapper.setFieldSetMapper(fieldSetMapper);
         return lineMapper;
     }
+
+    //Alternative way
+//    @Bean
+//    public Job bookReaderJob(JobRepository jobRepository, PlatformTransactionManager platformTransactionManager){
+//        return new JobBuilder("bookReadJob",jobRepository).incrementer(new RunIdIncrementer())
+//                .start(chunkStep(jobRepository,platformTransactionManager))
+//                .build();
+//    }
+//
+//    @Bean
+//    public Step chunkStep(JobRepository jobRepository, PlatformTransactionManager platformTransactionManager){
+//        return new StepBuilder("bookReaderStep",jobRepository).<BookEntity, BookEntity>chunk(10,platformTransactionManager)
+//                .reader(reader())
+//                .processor(processor())
+//                .writer(writer())
+//                .build();
+//    }
+//
+//    @Bean
+//    public ItemWriter<BookEntity> writer(){
+//        return new BookWriter();
+//    }
+//
+//    @Bean
+//    @StepScope
+//    public FlatFileItemReader<BookEntity> reader(){
+//        return new FlatFileItemReaderBuilder<BookEntity>()
+//                .name("bookReader")
+//                .resource(new ClassPathResource("book_data.csv"))
+//                .delimited()
+//                .names(new String[]{"title","author","year_of_publishing"})
+//                .fieldSetMapper(new BeanWrapperFieldSetMapper<>(){{
+//                    setTargetType(BookEntity.class);
+//                }})
+//                .build();
+//    }
+//
+//    @Bean
+//    public ItemProcessor<BookEntity,BookEntity> processor(){
+//        CompositeItemProcessor<BookEntity,BookEntity> processor = new CompositeItemProcessor<>();
+    //Multiple processor configuration
+//        processor.setDelegates(List.of(new BookTitleProcessor(),new BookAuthorProcessor()));
+//        return processor;
+//    }
+
 }
